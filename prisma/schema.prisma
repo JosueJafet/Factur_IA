@@ -1,0 +1,162 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Clientes {
+  id         BigInt   @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  nombre     String?  @db.VarChar
+}
+
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// ─────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────
+
+enum EstadoUsuario {
+  Activo
+  Inactivo
+}
+
+enum IngresoGasto {
+  Ingreso
+  Gasto
+}
+
+enum EstadoEnvio {
+  Pendiente
+  Enviado
+  Fallido
+}
+
+enum TipoDocumentoEnum {
+  FACTURA
+  RECIBO
+  OTROS
+}
+
+// ─────────────────────────────────────────
+// USUARIO
+// ─────────────────────────────────────────
+
+model Usuario {
+  id_usuario  Int           @id @default(autoincrement())
+  nombre      String        @db.VarChar(100)
+  correo      String        @unique @db.VarChar(150)
+  contrasena  String        @db.VarChar(255)   // almacenada cifrada
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  estado      EstadoUsuario @default(Activo)
+
+  facturas    Factura[]
+
+  @@map("usuarios")
+}
+
+// ─────────────────────────────────────────
+// CATEGORIA_GASTO
+// ─────────────────────────────────────────
+
+model CategoriaGasto {
+  id_categoria_gasto  Int       @id @default(autoincrement())
+  nombre              String    @db.VarChar(100)
+  descripcion         String?   @db.Text
+
+  facturas            Factura[]
+
+  @@map("categorias_gasto")
+}
+
+// ─────────────────────────────────────────
+// TIPO_DOCUMENTO
+// ─────────────────────────────────────────
+
+model TipoDocumento {
+  id_tipo_documento  Int               @id @default(autoincrement())
+  nombre             TipoDocumentoEnum
+
+  facturas           Factura[]
+
+  @@map("tipos_documento")
+}
+
+// ─────────────────────────────────────────
+// FACTURA
+// ─────────────────────────────────────────
+
+model Factura {
+  id_factura        Int            @id @default(autoincrement())
+  fecha             DateTime       @db.Date
+  proveedor         String         @db.VarChar(150)
+  monto             Decimal        @db.Decimal(10, 2)
+  imagen            String?        @db.VarChar(255)
+  factura_fisica    Boolean        @default(false)
+  ingreso_gasto     IngresoGasto
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  // Relaciones
+  id_usuario        Int
+  usuario           Usuario        @relation(fields: [id_usuario], references: [id_usuario])
+
+  id_tipo_gasto     Int
+  categoriaGasto    CategoriaGasto @relation(fields: [id_tipo_gasto], references: [id_categoria_gasto])
+
+  id_tipo_documento Int
+  tipoDocumento     TipoDocumento  @relation(fields: [id_tipo_documento], references: [id_tipo_documento])
+
+  detallesEnvio     DetalleEnvioFactura[]
+
+  @@map("facturas")
+}
+
+// ─────────────────────────────────────────
+// DETALLE_ENVIO
+// ─────────────────────────────────────────
+
+model DetalleEnvio {
+  id_detalle_envio   Int         @id @default(autoincrement())
+  timestamp          DateTime    @default(now())
+  destinatario       String      @db.VarChar(150)
+  medio_envio        String      @db.VarChar(100)
+  estado             EstadoEnvio @default(Pendiente)
+  facturas_enviadas  Int
+
+  facturas           DetalleEnvioFactura[]
+
+  @@map("detalles_envio")
+}
+
+// ─────────────────────────────────────────
+// Tabla pivote Factura <-> DetalleEnvio
+// (una factura puede estar en varios envíos,
+//  un envío puede incluir varias facturas)
+// ─────────────────────────────────────────
+
+model DetalleEnvioFactura {
+  id_detalle_envio  Int
+  id_factura        Int
+
+  detalleEnvio      DetalleEnvio @relation(fields: [id_detalle_envio], references: [id_detalle_envio])
+  factura           Factura      @relation(fields: [id_factura], references: [id_factura])
+
+  @@id([id_detalle_envio, id_factura])
+  @@map("detalle_envio_facturas")
+}
+
