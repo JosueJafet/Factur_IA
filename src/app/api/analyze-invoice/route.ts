@@ -1,9 +1,8 @@
 export const runtime = "nodejs";
+
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -20,6 +19,8 @@ export async function POST(req: Request) {
     const base64 = Buffer.from(buffer).toString("base64");
     const mimeType = (imgRes.headers.get("content-type") ?? "image/jpeg") as string;
 
+    // Inicializar dentro de la función
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `Analiza esta imagen de factura o recibo y extrae la siguiente información.
