@@ -1,8 +1,8 @@
 // src/app/api/categorias/route.ts
+export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-export const runtime = "nodejs";
 
 export async function GET() {
   const session = await auth();

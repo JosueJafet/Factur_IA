@@ -1,7 +1,7 @@
+export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-export const runtime = "nodejs";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -13,7 +13,6 @@ export async function POST(req: Request) {
     const { imageUrl } = await req.json();
     if (!imageUrl) return NextResponse.json({ error: "Se requiere imageUrl." }, { status: 400 });
 
-    // Descargar imagen y convertir a base64
     const imgRes = await fetch(imageUrl);
     if (!imgRes.ok) return NextResponse.json({ error: "No se pudo obtener la imagen." }, { status: 400 });
 
@@ -21,7 +20,7 @@ export async function POST(req: Request) {
     const base64 = Buffer.from(buffer).toString("base64");
     const mimeType = (imgRes.headers.get("content-type") ?? "image/jpeg") as string;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });;
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `Analiza esta imagen de factura o recibo y extrae la siguiente información.
 Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdown, sin bloques de código.
