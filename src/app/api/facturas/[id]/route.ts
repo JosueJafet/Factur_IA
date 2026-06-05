@@ -60,4 +60,4 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
     console.error("[DELETE]", error);
     return NextResponse.json({ error: "Error al eliminar." }, { status: 500 });
   }
-}
+} 
