@@ -48,7 +48,7 @@ export default function FacturaModal({ open, onClose, onSaved, inicial, categori
   const [preview, setPreview] = useState<string | null>(null);
   const [aiStatus, setAiStatus] = useState<AIStatus>("idle");
   const [aiConfianza, setAiConfianza] = useState<number | null>(null);
-  const [aiFields, setAiFields] = useState<string[]>([]); // campos que autocompleto IA
+  const [aiFields, setAiFields] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const isEdit = !!inicial?.id_factura;
@@ -69,7 +69,6 @@ export default function FacturaModal({ open, onClose, onSaved, inicial, categori
   const set = (k: keyof FacturaData, v: unknown) =>
     setForm((f) => ({ ...f, [k]: v }));
 
-  // ── Analizar con IA ──
   const analyzeWithAI = async (imageUrl: string) => {
     setAiStatus("analyzing");
     setAiFields([]);
@@ -94,7 +93,6 @@ export default function FacturaModal({ open, onClose, onSaved, inicial, categori
       if (data.fecha) { set("fecha", data.fecha); filled.push("fecha"); }
       if (data.monto) { set("monto", String(data.monto)); filled.push("monto"); }
 
-      // Mapear categoria_sugerida al id
       if (data.categoria_sugerida) {
         const cat = categorias.find(
           (c) => c.nombre.toLowerCase() === data.categoria_sugerida.toLowerCase()
@@ -102,7 +100,6 @@ export default function FacturaModal({ open, onClose, onSaved, inicial, categori
         if (cat) { set("id_tipo_gasto", String(cat.id_categoria_gasto)); filled.push("categoría"); }
       }
 
-      // Mapear tipo_documento al id
       if (data.tipo_documento) {
         const tipo = tiposDoc.find(
           (t) => t.nombre.toUpperCase() === data.tipo_documento.toUpperCase()
@@ -118,7 +115,6 @@ export default function FacturaModal({ open, onClose, onSaved, inicial, categori
     }
   };
 
-  // ── Upload archivo ──
   const handleFile = async (file: File) => {
     setUploading(true);
     setError("");
@@ -133,7 +129,6 @@ export default function FacturaModal({ open, onClose, onSaved, inicial, categori
     set("imagen", data.url);
     setPreview(data.url);
 
-    // Solo analizar imágenes (no PDFs) en modo nuevo
     if (!isEdit && !file.name.toLowerCase().endsWith(".pdf")) {
       analyzeWithAI(data.url);
     }
@@ -145,7 +140,6 @@ export default function FacturaModal({ open, onClose, onSaved, inicial, categori
     if (file) handleFile(file);
   };
 
-  // ── Submit ──
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -237,7 +231,7 @@ export default function FacturaModal({ open, onClose, onSaved, inicial, categori
                     </div>
                   ) : (
                     <div className="relative h-40 rounded-xl overflow-hidden">
-                      <Image src={preview} alt="preview" fill className="object-contain p-2" />
+                      <Image src={preview} alt="preview" fill className="object-contain p-2" sizes="(max-width: 768px) 100vw, 672px" />
                       <button type="button" onClick={(e) => { e.stopPropagation(); set("imagen", null); setPreview(null); setAiStatus("idle"); setAiFields([]); }}
                         className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-red-500 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -261,7 +255,7 @@ export default function FacturaModal({ open, onClose, onSaved, inicial, categori
             </div>
           </div>
 
-          {/* Banner de estado IA */}
+          {/* Banner estado IA */}
           {aiStatus === "analyzing" && (
             <div className="flex items-center gap-3 bg-[#00AEEF]/8 border border-[#00AEEF]/20 rounded-xl px-4 py-3">
               <svg className="animate-spin w-4 h-4 text-[#00AEEF] flex-shrink-0" fill="none" viewBox="0 0 24 24">
@@ -288,6 +282,11 @@ export default function FacturaModal({ open, onClose, onSaved, inicial, categori
                 <p className="text-xs text-green-600 mt-0.5">
                   Campos detectados: {aiFields.join(", ")} · Verifica y corrige si es necesario
                 </p>
+                {aiFields.includes("fecha") && (
+                  <p className="text-xs text-amber-600 mt-1.5 font-medium">
+                    ⚠ La fecha fue tomada del documento — cámbiala si deseas registrarla en el mes actual
+                  </p>
+                )}
               </div>
             </div>
           )}
