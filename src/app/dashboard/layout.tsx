@@ -13,8 +13,10 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-[#F7F9FC] flex">
-      {/* Sidebar — fijo en desktop, drawer en móvil (controlado por Topbar) */}
-      <Sidebar user={session.user ?? {}} /> 
+      {/* Sidebar solo visible en desktop */}
+      <div className="hidden lg:block">
+        <Sidebar user={session.user ?? {}} />
+      </div>
 
       {/* Main area */}
       <div className="flex-1 flex flex-col min-h-screen lg:ml-64">
