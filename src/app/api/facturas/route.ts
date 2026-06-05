@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+export const runtime = "nodejs";
 
 // GET /api/facturas?mes=2025-05&categoria=1
 export async function GET(req: Request) {

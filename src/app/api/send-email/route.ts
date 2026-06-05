@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { Resend } from "resend";
+
 import { prisma } from "@/lib/prisma";
+export const runtime = "nodejs";
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
